@@ -3,11 +3,13 @@ import FruitsCount from './FruitsCount';
 import FruitsContext from "./FruitsContext";
 import { useContext } from "react";
 import image1 from '../assets/f1.jpeg';
+
 export default function Fruits() {
     const { fruits, setFruits, foo, removeItem } = useContext(FruitsContext);
     const fruitslist = ['apple', 'banana', 'cherry', 'pear'];
-
+    const b1 = new Audio('https://www.soundjay.com/button/beep-07.wav');
     // get rundom item from fruitslist
+    b1.paused = false;
     const getRandomFruit = () => {
         const randomIndex = Math.floor(Math.random() * fruitslist.length);
         return fruitslist[randomIndex];
