@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask Image Upload API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #response {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flask Image Upload API</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif">
+        <br>
+        <label>
+            <input type="checkbox" name="upload_to_s3" id="upload_to_s3" {% if upload_to_s3 %}checked{% endif %}>
+            Upload to AWS S3
+        </label>
+        <button type="submit">Upload</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const responseDiv = document.getElementById('response');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    responseDiv.innerHTML = `Error: ${data.error}`;
+                } else {
+                    responseDiv.innerHTML = `Success: ${data.message} (${data.filename})`;
+                }
+            })
+            .catch(error => {
+                responseDiv.innerHTML = `Error: ${error}`;
+            });
+        });
+    </script>
+</body>
+</html>
