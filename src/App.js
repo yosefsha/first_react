@@ -21,33 +21,7 @@ function App() {
     setResult((result) => result + Number(inputRef.current.value));
   };
 
-  function minus(e) {
-    console.log('plus e:', e);
-    // Add the code for the minus function 
-    e.preventDefault();
-    setResult((result) => result - Number(inputRef.current.value));
 
-  };
-
-  function times(e) {
-    e.preventDefault();
-    setResult((result) => result * Number(inputRef.current.value));
-  };
-
-  function divide(e) {
-    e.preventDefault();
-    setResult((result) => result / Number(inputRef.current.value));
-  };
-
-  function resetInput(e) {
-    e.preventDefault();
-    inputRef.current.value = '';
-  };
-
-  function resetResult(e) {
-    e.preventDefault();
-    setResult('');
-  };
 
   return (
     <div className="App">

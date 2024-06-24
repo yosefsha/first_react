@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { postData } from '../utils/api';
 
 const FileUploadComponent = ({ uploadToS3 }) => {
     const [file, setFile] = useState(null);
@@ -26,19 +27,14 @@ const FileUploadComponent = ({ uploadToS3 }) => {
         formData.append('upload_to_s3', uploadToS3State.toString());
 
         try {
-            const response = await fetch('/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await response.json();
-
+            const data = await postData('/upload', formData);
             if (data.error) {
                 setResponse(`Error: ${data.error}`);
             } else {
                 setResponse(`Success: ${data.message} (${data.filename})`);
             }
         } catch (error) {
-            setResponse(`Error: ${error}`);
+            setResponse(`Error: ${error.message}`);
         }
     };
 

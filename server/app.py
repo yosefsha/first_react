@@ -3,6 +3,11 @@ import os
 from werkzeug.utils import secure_filename
 import boto3
 
+from flask_cors import CORS, cross_origin
+
+app = Flask(__name__)
+CORS(app, resources={r"/upload": {"origins": "http://localhost:3000"}})
+
 app = Flask(__name__)
 
 # Configure upload folder
@@ -32,10 +37,30 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@app.route('/upload', methods=['POST'])
+def before_request():
+    if request.method == 'OPTIONS':
+        response = app.make_response('')
+        response.headers.add("Access-Control-Allow-Origin",
+                             "http://localhost:3000")
+        response.headers.add("Access-Control-Allow-Headers", "*")
+        response.headers.add("Access-Control-Allow-Methods", "*")
+        return response
+
+
+@app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
+    # if request.method == 'OPTIONS':
+    #     # Allow the actual request after preflight
+    #     response = app.make_response('')
+    #     response.headers.add("Access-Control-Allow-Origin", "*")
+    #     response.headers.add(
+    #         "Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    #     response.headers.add("Access-Control-Allow-Headers",
+    #                          "Content-Type, Authorization")
+    #     return response
     # Check if the request contains a file part
     if 'file' not in request.files:
+        print('No file part')
         return jsonify(error='No file part'), 400
 
     file = request.files['file']
