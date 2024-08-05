@@ -37,6 +37,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.before_request
 def before_request():
     if request.method == 'OPTIONS':
         response = app.make_response('')
@@ -49,38 +50,32 @@ def before_request():
 
 @app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
-    # if request.method == 'OPTIONS':
-    #     # Allow the actual request after preflight
-    #     response = app.make_response('')
-    #     response.headers.add("Access-Control-Allow-Origin", "*")
-    #     response.headers.add(
-    #         "Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    #     response.headers.add("Access-Control-Allow-Headers",
-    #                          "Content-Type, Authorization")
-    #     return response
-    # Check if the request contains a file part
-    if 'file' not in request.files:
-        print('No file part')
-        return jsonify(error='No file part'), 400
+    if request.is_json:
+        data = request.get_json()
 
-    file = request.files['file']
+    # Check if the post request has the file part
+        if 'file' not in data:
+            print('No file part')
+            return jsonify(error='No file part'), 400
+        upload_to_s3 = data.get('upload_to_s3', UPLOAD_TO_S3)
+        file = data.get('file')
 
-    # If no file is selected
-    if file.filename == '':
-        return jsonify(error='No selected file'), 400
+        # If no file is selected
+        if file.filename == '':
+            return jsonify(error='No selected file'), 400
 
-    # Check if the file is allowed
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        if UPLOAD_TO_S3:
-            try:
-                s3.upload_fileobj(file, AWS_S3_BUCKET, filename)
-                return jsonify(message='File successfully uploaded to S3', filename=filename), 200
-            except Exception as e:
-                return jsonify(error=str(e)), 500
-        else:
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return jsonify(message='File successfully uploaded to local disk', filename=filename), 200
+        # Check if the file is allowed
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            if upload_to_s3:
+                try:
+                    s3.upload_fileobj(file, AWS_S3_BUCKET, filename)
+                    return jsonify(message='File successfully uploaded to S3', filename=filename), 200
+                except Exception as e:
+                    return jsonify(error=str(e)), 500
+            else:
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                return jsonify(message='File successfully uploaded to local disk', filename=filename), 200
     else:
         return jsonify(error='File type not allowed'), 400
 
