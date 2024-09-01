@@ -1,0 +1,23 @@
+# this is a manifest file for the deployment of the server
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-uploader-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: file-uploader-deployment
+  template:
+    metadata:
+      labels:
+        app: file-uploader-deployment
+    spec:
+      containers:
+      - name: file-uploader-container
+        image: 963352896991.dkr.ecr.us-east-1.amazonaws.com/file_uploader_repo:1.0.1
+       # image: 963352896991.dkr.ecr.us-east-1.amazonaws.com/file_uploader_repo/file_uploader_image:1.0.0
+        ports:
+        - containerPort: 5000
+

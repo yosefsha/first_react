@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify, render_template
 import os
+import base64
+import io
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import BadRequest
+
 import boto3
 
 from flask_cors import CORS, cross_origin
@@ -37,47 +41,67 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def decode_base64(data):
+    # Add padding if necessary
+    missing_padding = len(data) % 4
+    if missing_padding != 0:
+        data += '=' * (4 - missing_padding)
+
+    # Decode the Base64 string
+    return base64.b64decode(data)
+
+
 @app.before_request
 def before_request():
-    if request.method == 'OPTIONS':
-        response = app.make_response('')
-        response.headers.add("Access-Control-Allow-Origin",
-                             "http://localhost:3000")
-        response.headers.add("Access-Control-Allow-Headers", "*")
-        response.headers.add("Access-Control-Allow-Methods", "*")
-        return response
+    # if request.method == 'OPTIONS':
+    response = app.make_response('')
+    response.headers.add("Access-Control-Allow-Origin",
+                         "http://localhost:3000")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    return response
 
 
 @app.route('/upload', methods=['POST', 'OPTIONS'])
-def upload_file():
-    if request.is_json:
-        data = request.get_json()
+def upload_files():
+    try:
+        if request.is_json:  # set by content-type: application/json
+            bd = request.get_data()
+            print('bd:', bd)
+            data = request.get_json()
 
-    # Check if the post request has the file part
-        if 'file' not in data:
+        # Check if the post request has the file part
+        if 'files' not in data:
             print('No file part')
             return jsonify(error='No file part'), 400
         upload_to_s3 = data.get('upload_to_s3', UPLOAD_TO_S3)
-        file = data.get('file')
+        file_dict = data.get('files', None)[0]
 
         # If no file is selected
-        if file.filename == '':
-            return jsonify(error='No selected file'), 400
+        filename = file_dict.get('name', None)
+        if not filename:
+            raise BadRequest('No file name')
 
         # Check if the file is allowed
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            if upload_to_s3:
-                try:
-                    s3.upload_fileobj(file, AWS_S3_BUCKET, filename)
-                    return jsonify(message='File successfully uploaded to S3', filename=filename), 200
-                except Exception as e:
-                    return jsonify(error=str(e)), 500
-            else:
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                return jsonify(message='File successfully uploaded to local disk', filename=filename), 200
-    else:
-        return jsonify(error='File type not allowed'), 400
+        if not allowed_file(filename):
+            raise BadRequest('File type not allowed')
+
+        file_data = decode_base64(file_dict.get('content', None))
+
+        s_filename = secure_filename(filename)
+
+        if upload_to_s3:
+            file_obj = io.BytesIO(file_data)
+            s3.upload_fileobj(file_obj, AWS_S3_BUCKET, filename)
+            return jsonify(message='File successfully uploaded to S3', filename=filename), 200
+        else:
+            with open(os.path.join(app.config['UPLOAD_FOLDER'], s_filename), 'wb') as f:
+                f.write(file_data)
+            return jsonify(message='File successfully uploaded to local disk', filename=filename), 200
+    except BadRequest as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": "An error occurred: {}".format(e.args)}), 500
 
 
 @app.route('/', methods=['GET'])
@@ -86,4 +110,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000, host="0.0.0.0")

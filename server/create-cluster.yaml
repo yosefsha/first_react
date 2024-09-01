@@ -1,0 +1,72 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: my-eks-cluster        # Mandatory: Name of the cluster
+  region: us-east-1           # Mandatory: AWS region for the cluster
+
+nodeGroups:
+  - name: ng-1                # Mandatory: Name of the node group
+    instanceType: t3.nano   # Mandatory: EC2 instance type
+    desiredCapacity: 2        # Mandatory: Desired number of instances
+
+# apiVersion: eksctl.io/v1alpha5
+# kind: ClusterConfig
+
+# metadata:
+#   name: my-eks-cluster                # Name of the EKS cluster
+#   region: us-east-1                   # AWS region where the cluster will be created
+#   version: "1.26"                     # Kubernetes version to use for the cluster
+
+# vpc:
+#   cidr: "192.168.0.0/16"              # CIDR block for the VPC (optional, will use default if not specified)
+#   nat:
+#     gateway: Single                   # NAT Gateway configuration (Single, HighlyAvailable, or Disable)
+#   subnets:
+#     private:                          # Private subnets configuration
+#       us-west-2a: {cidr: "192.168.1.0/24"}
+#       us-west-2b: {cidr: "192.168.2.0/24"}
+#     public:                           # Public subnets configuration
+#       us-west-2a: {cidr: "192.168.3.0/24"}
+#       us-west-2b: {cidr: "192.168.4.0/24"}
+
+# nodeGroups:
+#   - name: ng-1                        # Name of the node group
+#     instanceType: t3.medium           # EC2 instance type
+#     desiredCapacity: 2                # Desired number of instances
+#     minSize: 1                        # Minimum number of instances
+#     maxSize: 3                        # Maximum number of instances
+#     volumeSize: 20                    # Size of the EBS volume attached to each instance (in GB)
+#     ssh:                              # SSH access configuration
+#       allow: true                     # Allow SSH access to nodes
+#       publicKeyName: my-ssh-key       # Name of the SSH key pair
+
+#   - name: ng-2                        # A second node group
+#     instanceType: t3.large
+#     desiredCapacity: 1
+#     privateNetworking: true           # Nodes will be launched in private subnets
+
+# cloudWatch:
+#   clusterLogging:
+#     enableTypes: ["api", "audit", "authenticator"]  # Enable specific types of cluster logging
+
+# iam:
+#   withOIDC: true                      # Enable OIDC provider for the cluster
+
+# # Optional configuration for managed node groups
+# managedNodeGroups:
+#   - name: managed-ng
+#     instanceType: t3.medium
+#     desiredCapacity: 2
+#     minSize: 1
+#     maxSize: 3
+#     volumeSize: 20
+#     ssh:
+#       allow: true
+#       publicKeyName: my-ssh-key
+#     labels:                            # Labels for the managed node group
+#       role: worker
+#     taints:                            # Taints for the managed node group
+#       - key: dedicated
+#         value: my-team
+#         effect: NoSchedule

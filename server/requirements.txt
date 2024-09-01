@@ -1,0 +1,5 @@
+# requirements.txt
+Flask==2.0.3
+Werkzeug==2.0.3
+boto3==1.18.63
+flask-cors==3.0.10
