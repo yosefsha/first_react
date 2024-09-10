@@ -51,23 +51,53 @@ def decode_base64(data):
     return base64.b64decode(data)
 
 
-@app.before_request
-def before_request():
-    # if request.method == 'OPTIONS':
-    response = app.make_response('')
+# @app.before_request
+# def before_request():
+#     if request.method == 'OPTIONS':
+#         response = app.make_response('')
+#         response.headers.add("Access-Control-Allow-Origin",
+#                              "http://localhost:8080")
+#         response.headers.add("Access-Control-Allow-Headers", "*")
+#         response.headers.add("Access-Control-Allow-Methods", "*")
+#         return response
+
+
+@app.after_request
+def add_cors_headers(response):
+    # Adding CORS headers
+    # You can replace * with specific origins
     response.headers.add("Access-Control-Allow-Origin",
-                         "http://localhost:3000")
-    response.headers.add("Access-Control-Allow-Headers", "*")
-    response.headers.add("Access-Control-Allow-Methods", "*")
+                         "http://localhost:8080")
+    response.headers.add("Access-Control-Allow-Headers",
+                         "*")
+    response.headers.add("Access-Control-Allow-Methods",
+                         "GET,POST,PUT,DELETE,OPTIONS")
+    print(f"after_request Response Headers: {response.headers}")
+
     return response
+
+
+# @app.route('/upload', methods=['OPTIONS'])
+# def upload_files_options():
+#     response = app.make_response('')
+#     response.headers.add("Access-Control-Allow-Origin",
+#                          "http://localhost:8080")
+#     response.headers.add("Access-Control-Allow-Headers",
+#                          "*")
+#     response.headers.add("Access-Control-Allow-Methods",
+#                          "GET,POST,PUT,DELETE,OPTIONS")
+#     return response
 
 
 @app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_files():
+    print('upload:', request.method)
     try:
+        if request.method == 'OPTIONS':
+            response = app.make_response('')
+            return response
         if request.is_json:  # set by content-type: application/json
             bd = request.get_data()
-            print('bd:', bd)
             data = request.get_json()
 
         # Check if the post request has the file part

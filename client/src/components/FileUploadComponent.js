@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { postData } from '../utils/api';
+import { fileToBlobWithMeta } from '../utils/files_helper';
+
 
 const FileUploadComponent = ({ uploadToS3 }) => {
     const [file, setFile] = useState(null);
@@ -32,7 +34,8 @@ const FileUploadComponent = ({ uploadToS3 }) => {
             console.log('form data val: ', pair[0] + ', ' + pair[1]);
         }
 
-        const body = { files: [file], upload_to_s3: uploadToS3State };
+        const fileData = await fileToBlobWithMeta(file);
+        const body = { files: [fileData], upload_to_s3: uploadToS3State };
 
         try {
             const data = await postData('/upload', body);
