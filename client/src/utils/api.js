@@ -5,15 +5,11 @@ const PORT = 5000;
 
 const BASE_URL = `http://${HOST}:${PORT}`;
 
-const headers = {
-    'Content-Type': 'application/json',
-    // Add any other default headers you need
-};
 
 export const fetchData = async (path) => {
     const url = `${BASE_URL}${path}`;
     try {
-        const response = await fetch(url, { headers });
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -25,13 +21,29 @@ export const fetchData = async (path) => {
     }
 };
 
-export const postData = async (path, body) => {
+/**
+ * @param {string} path
+ * @param {object} body
+ * @param {object} headers - Optional default is 'Content-Type': 'application/json'
+ * @returns {Promise<object>}
+ */
+
+export const postData = async (path, body, headers) => {
     const url = `${BASE_URL}${path}`;
+    for (const key in body) {
+        if (body[key] === undefined) {
+            delete body[key];
+        }
+    }
+    const headersToUse = headers || {
+        'Content-Type': 'application/json'
+    };
+
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers,
-            body
+            body: headersToUse['Content-Type'] == 'application/json' ? JSON.stringify(body) : body,
+            headers: headersToUse
         });
         if (!response.ok) {
             throw new Error('Network response was not ok');
